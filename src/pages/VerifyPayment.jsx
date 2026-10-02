@@ -1,19 +1,26 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import Cookies from "js-cookie";
 
 const VerifyPayment = () => {
   const [searchParams] = useSearchParams();
   const reference = searchParams.get("reference");
+  const token = Cookies.get("token");
 
   const [status, setStatus] = useState("loading");
 
   useEffect(() => {
     const confirmPayment = async () => {
       try {
-       
         const payment = await axios.get(
-          `https://fastbuybackend.onrender.com/pay/verify/${reference}`
+          `https://fastbuybackend.onrender.com/pay/verify/${reference}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          },
         );
 
         setStatus(payment.data.data.status);
@@ -27,7 +34,7 @@ const VerifyPayment = () => {
     if (reference) {
       confirmPayment();
     }
-  }, [reference]);
+  }, [reference, token]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -41,7 +48,7 @@ const VerifyPayment = () => {
       {status === "success" && (
         <>
           <h1 className="text-2xl font-bold text-green-600">
-            Your payment was successful 
+            Your payment was successful
           </h1>
 
           <Link to="/">
@@ -55,7 +62,7 @@ const VerifyPayment = () => {
       {status === "failed" && (
         <>
           <h1 className="text-2xl font-bold text-red-600">
-            Payment verification failed 
+            Payment verification failed
           </h1>
 
           <Link to="/">
