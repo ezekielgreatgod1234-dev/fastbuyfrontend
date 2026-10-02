@@ -1,30 +1,54 @@
 import { Link } from "react-router-dom";
 import Cookies from "js-cookie";
-
+import axios from "axios";
+import { useEffect, useState} from "react";
+import { useNavigate } from "react-router-dom";
 const Home = () => {
   const token = Cookies.get("token");
-  // Sample food items data for display
-  const foodItems = [
-    {
-      id: 1,
-      name: "Jollof Rice & Chicken",
-      price: "₦2,500",
-      category: "Local Dish",
-    },
-    {
-      id: 2,
-      name: "Fried Rice & Turkey",
-      price: "₦3,000",
-      category: "Local Dish",
-    },
-    { id: 3, name: "Burger & Fries", price: "₦2,000", category: "Fast Food" },
-    {
-      id: 4,
-      name: "Peppered Chicken & Chips",
-      price: "₦2,800",
-      category: "Fast Food",
-    },
-  ];
+  const [foodItems, setFoodItems] = useState([])
+  const navigate = useNavigate()
+
+  useEffect(() => {
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/product");
+      setFoodItems(response.data.products);
+      console.log(response)
+    } catch (error) {
+      console.log(error.response?.data?.message || error.message || "Something went wrong");
+    }
+  };
+  fetchProducts();
+}, []);
+
+  
+  const handleOrder = async (id) => {
+    if (!token){
+      navigate("/login")
+      return
+    }
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/pay/initialize",
+        {
+          productId: id,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      
+  console.log(response.data.data.authorization_url);
+    window.location.assign(response.data.data.authorization_url)
+     
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-900 font-sans">
@@ -71,10 +95,12 @@ const Home = () => {
               key={item.id}
               className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow"
             >
-              <div className="h-40 bg-emerald-50 flex items-center justify-center text-emerald-500 font-semibold text-sm">
-                {item.category} Image
-              </div>
-              <div className="p-5 flex flex-col grow">
+
+              <div className ="h-50">
+                <img src={item.image} />
+                </div>
+             
+              <div className="bg-white p-5 flex flex-col grow">
                 <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">
                   {item.category}
                 </span>
@@ -85,7 +111,10 @@ const Home = () => {
                   <span className="font-extrabold text-gray-900 text-lg">
                     {item.price}
                   </span>
-                  <button className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm cursor-pointer">
+                  <button
+                    onClick={()=>handleOrder(item.id)}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm cursor-pointer"
+                  >
                     Order Now
                   </button>
                 </div>
