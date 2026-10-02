@@ -13,7 +13,7 @@ const VerifyPayment = () => {
       try {
        
         const payment = await axios.get(
-          `https://fastbuybackend.onrender.com/payment/verify/${reference}`
+          `https://fastbuybackend.onrender.com/pay/verify/${reference}`
         );
 
         setStatus(payment.data.data.status);
